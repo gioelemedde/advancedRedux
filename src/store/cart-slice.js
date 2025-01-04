@@ -1,17 +1,23 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { UiSliceActions } from "./ui-slice";
 
 const cartSlice = createSlice({
   name: "cart",
   initialState: {
     items: [],
     totalQuantity: 0,
+    changed: false
   },
-  reducers: {
+  reducers:
+  {
+    replaceCart(state, actions){
+      state.items = actions.payload.items;
+      state.totalQuantity = state.items.reduce((acc, item) => acc + item.quantity, 0);
+    },
     addItemToCart(state, action) {
       const newItems = action.payload;
       const existingItems = state.items.find((item) => item.id === newItems.id);
       state.totalQuantity++;
+      state.changed = true
       if (!existingItems) {
         state.items.push({
           id: newItems.id,
@@ -29,6 +35,7 @@ const cartSlice = createSlice({
       const id = action.payload;
       const existingItems = state.items.find((item) => item.id === id);
       state.totalQuantity--;
+      state.changed = true;
       if (existingItems.quantity === 1) {
         state.items = state.items.filter((item) => item.id !== id);
       } else {
@@ -39,49 +46,49 @@ const cartSlice = createSlice({
   },
 });
 
-export const sendCartData = (cart) => {
-  return async (dispatch) => {
-    dispatch(
-      UiSliceActions.showNotification({
-        status: "pending",
-        title: "Pending",
-        message: "Sending ...",
-      })
-    );
+// export const sendCartData = (cart) => {
+//   return async (dispatch) => {
+//     dispatch(
+//       UiSliceActions.showNotification({
+//         status: "pending",
+//         title: "Pending",
+//         message: "Sending ...",
+//       })
+//     );
 
-    const sendRequest = async () => {
-      const response = await fetch(
-        "https://redux-d9721-default-rtdb.firebaseio.com/cart.json",
-        {
-          method: "PUT",
-          body: JSON.stringify(cart),
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-    };
+//     const sendRequest = async () => {
+//       const response = await fetch(
+//         "https://redux-d9721-default-rtdb.firebaseio.com/cart.json",
+//         {
+//           method: "PUT",
+//           body: JSON.stringify(cart),
+//         }
+//       );
+//       if (!response.ok) {
+//         throw new Error("Network response was not ok");
+//       }
+//     };
 
-    try {
-      await sendRequest();
-      dispatch(
-        UiSliceActions.showNotification({
-          status: "success",
-          title: "Success",
-          message: "Sent cart data successfully",
-        })
-      );
-    } catch (error) {
-      dispatch(
-        UiSliceActions.showNotification({
-          status: "error",
-          title: "Error",
-          message: "Error while sending cart data",
-        })
-      );
-    }
-  };
-};
+//     try {
+//       await sendRequest();
+//       dispatch(
+//         UiSliceActions.showNotification({
+//           status: "success",
+//           title: "Success",
+//           message: "Sent cart data successfully",
+//         })
+//       );
+//     } catch (error) {
+//       dispatch(
+//         UiSliceActions.showNotification({
+//           status: "error",
+//           title: "Error",
+//           message: "Error while sending cart data",
+//         })
+//       );
+//     }
+//   };
+// }
 
 export const cartSliceActions = cartSlice.actions;
 
